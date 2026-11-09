@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255700226949",
+    "project_id": "pokemon-3322f",
+    "storage_bucket": "pokemon-3322f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255700226949:android:9cc8d99797f8f052ca6aec",
+        "android_client_info": {
+          "package_name": "com.tecsup.pokemon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANKqqQaA5WRCNncfghVMawEMlDMqabu7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
