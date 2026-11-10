@@ -15,7 +15,7 @@ data class PokemonRef(val name: String, val url: String)
 data class TypeResponse(val pokemon: List<PokemonSlot>)
 
 @Serializable
-data class PokemonSlot(val pokemon: PokemonRef)
+data class PokemonSlot(val slot: Int = 1, val pokemon: PokemonRef)
 
 // GET pokemon/{id}
 @Serializable
