@@ -1,5 +1,6 @@
 package com.tecsup.pokemon.data.repository
 
+import com.tecsup.pokemon.domain.model.Ficha
 import com.tecsup.pokemon.domain.model.Item
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -25,6 +26,9 @@ class FakeItemRepository : ItemRepository {
         datos.value.firstOrNull { it.id == id }
             ?.let { Result.success(it) }
             ?: Result.failure(Exception("No encontrado"))
+
+    override suspend fun obtenerFicha(id: Int): Result<Ficha> =
+        Result.failure(Exception("No disponible en el repositorio falso"))
 
     override suspend fun alternarFavorito(id: Int) {
         datos.value = datos.value.map {

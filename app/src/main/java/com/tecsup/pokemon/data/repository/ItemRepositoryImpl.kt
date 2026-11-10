@@ -1,8 +1,8 @@
 package com.tecsup.pokemon.data.repository
 
 import com.tecsup.pokemon.data.mapper.aItem
-import com.tecsup.pokemon.data.mapper.idDeUrl
 import com.tecsup.pokemon.data.remote.ApiService
+import com.tecsup.pokemon.domain.model.Ficha
 import com.tecsup.pokemon.domain.model.Item
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -41,6 +41,26 @@ class ItemRepositoryImpl(
                 imagenUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${d.id}.png",
                 esFavorito = datos.value.firstOrNull { it.id == d.id }?.esFavorito ?: false,
                 tipos = d.types.map { it.type.name }
+            )
+        )
+    } catch (e: IOException) {
+        Result.failure(e)
+    } catch (e: HttpException) {
+        Result.failure(e)
+    }
+
+    override suspend fun obtenerFicha(id: Int): Result<Ficha> = try {
+        val d = api.detalle(id)
+        Result.success(
+            Ficha(
+                id = d.id,
+                nombre = d.name,
+                alturaM = d.height / 10.0,
+                pesoKg = d.weight / 10.0,
+                tipos = d.types.map { it.type.name },
+                habilidades = d.abilities.map { it.ability.name },
+                stats = d.stats.map { it.stat.name to it.baseStat },
+                esFavorito = datos.value.firstOrNull { it.id == d.id }?.esFavorito ?: false
             )
         )
     } catch (e: IOException) {
