@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.tecsup.pokemon.domain.model.Item
 import com.tecsup.pokemon.ui.UiState
 import com.tecsup.pokemon.ui.components.Cargando
@@ -64,6 +65,13 @@ private fun ItemFila(
 ) {
     ListItem(
         modifier = Modifier.clickable { onClick(item.id) },
+        leadingContent = {
+            AsyncImage(
+                model = item.imagenUrl,
+                contentDescription = item.titulo,
+                modifier = Modifier.size(56.dp)
+            )
+        },
         headlineContent = { Text(item.titulo.replaceFirstChar { it.uppercase() }) },
         supportingContent = { Text(item.subtitulo) },
         trailingContent = {

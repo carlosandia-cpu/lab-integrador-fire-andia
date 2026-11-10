@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.IOException
 
 class ListaViewModel(
@@ -57,6 +58,7 @@ class ListaViewModel(
 
     private fun mensajeDe(e: Throwable) = when (e) {
         is IOException -> "No hay conexión a internet"
+        is HttpException -> "El servidor respondió con error ${e.code()}"
         else -> "Ocurrió un error inesperado"
     }
 }

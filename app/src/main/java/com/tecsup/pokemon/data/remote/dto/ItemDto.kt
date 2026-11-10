@@ -3,17 +3,21 @@ package com.tecsup.pokemon.data.remote.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// Respuesta de GET type/fire
+// GET pokemon?limit=151
+@Serializable
+data class ListaResponse(val results: List<PokemonRef>)
+
+@Serializable
+data class PokemonRef(val name: String, val url: String)
+
+// GET type/{tipo}
 @Serializable
 data class TypeResponse(val pokemon: List<PokemonSlot>)
 
 @Serializable
 data class PokemonSlot(val pokemon: PokemonRef)
 
-@Serializable
-data class PokemonRef(val name: String, val url: String)
-
-// Respuesta de GET pokemon/{nombre}
+// GET pokemon/{id}
 @Serializable
 data class PokemonDetalleDto(
     val id: Int,
@@ -21,11 +25,15 @@ data class PokemonDetalleDto(
     val height: Int,
     val weight: Int,
     val types: List<TipoSlot> = emptyList(),
+    val abilities: List<HabilidadSlot> = emptyList(),
     val stats: List<StatSlot> = emptyList()
 )
 
 @Serializable
 data class TipoSlot(val type: NombreRef)
+
+@Serializable
+data class HabilidadSlot(val ability: NombreRef)
 
 @Serializable
 data class StatSlot(
