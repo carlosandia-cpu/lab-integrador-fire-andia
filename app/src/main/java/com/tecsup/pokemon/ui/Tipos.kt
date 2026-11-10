@@ -24,8 +24,22 @@ object Tipos {
         "fairy" to Color(0xFFD685AD)
     )
 
+    private val stats = mapOf(
+        "hp" to "PS",
+        "attack" to "Ataque",
+        "defense" to "Defensa",
+        "special-attack" to "At. Esp.",
+        "special-defense" to "Def. Esp.",
+        "speed" to "Velocidad"
+    )
+
     val todos: List<String> = nombres.keys.toList()
 
     fun nombre(tipo: String): String = nombres[tipo] ?: tipo.replaceFirstChar { it.uppercase() }
     fun color(tipo: String): Color = colores[tipo] ?: Color.Gray
+    fun stat(nombre: String): String = stats[nombre] ?: nombre
+
+    // Las habilidades vienen en inglés: solo se limpian para mostrarlas
+    fun habilidad(nombre: String): String =
+        nombre.replace('-', ' ').replaceFirstChar { it.uppercase() }
 }
