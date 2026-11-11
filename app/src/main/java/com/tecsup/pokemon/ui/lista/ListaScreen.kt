@@ -1,4 +1,3 @@
-
 package com.tecsup.pokemon.ui.lista
 
 import androidx.compose.foundation.layout.*
@@ -8,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +34,7 @@ fun ListaScreen(
     val tipo by viewModel.tipo.collectAsStateWithLifecycle()
     val region by viewModel.region.collectAsStateWithLifecycle()
     val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     val config = LocalConfiguration.current
     val horizontal =
@@ -65,6 +67,8 @@ fun ListaScreen(
                 onItemClick = onItemClick,
                 onFavorito = viewModel::alternarFavorito,
                 onReintentar = viewModel::refrescar,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refrescar,
                 modifier = Modifier.weight(0.62f)
             )
         }
@@ -85,6 +89,8 @@ fun ListaScreen(
                 onItemClick = onItemClick,
                 onFavorito = viewModel::alternarFavorito,
                 onReintentar = viewModel::refrescar,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refrescar,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -168,6 +174,7 @@ private fun Filtros(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Resultados(
     estado: UiState<List<Item>>,
@@ -175,69 +182,80 @@ private fun Resultados(
     onItemClick: (Int) -> Unit,
     onFavorito: (Int) -> Unit,
     onReintentar: () -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier.fillMaxHeight()) {
+    val pullRefreshState = rememberPullToRefreshState()
 
-        if (aviso != null) {
-            Text(
-                aviso,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(12.dp)
-            )
-        }
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = pullRefreshState,
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
-        when (val e = estado) {
-            is UiState.Cargando -> {
-                Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Cargando()
-                }
-            }
-
-            is UiState.Error -> {
-                Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ErrorView(
-                        e.mensaje,
-                        onReintentar = onReintentar
-                    )
-                }
-            }
-
-            is UiState.Exito -> {
+            if (aviso != null) {
                 Text(
-                    "${e.datos.size} Pokémon",
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(
-                        start = 12.dp,
-                        top = 6.dp,
-                        bottom = 4.dp
-                    )
+                    aviso,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(12.dp)
                 )
+            }
 
-                if (e.datos.isEmpty()) {
+            when (val e = estado) {
+                is UiState.Cargando -> {
                     Box(
                         Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No hay resultados")
+                        Cargando()
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
+                }
+
+                is UiState.Error -> {
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(e.datos, key = { it.id }) { item ->
-                            ItemFila(
-                                item,
-                                onItemClick,
-                                onFavorito
-                            )
+                        ErrorView(
+                            e.mensaje,
+                            onReintentar = onReintentar
+                        )
+                    }
+                }
+
+                is UiState.Exito -> {
+                    Text(
+                        "${e.datos.size} Pokémon",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(
+                            start = 12.dp,
+                            top = 6.dp,
+                            bottom = 4.dp
+                        )
+                    )
+
+                    if (e.datos.isEmpty()) {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No hay resultados")
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(e.datos, key = { it.id }) { item ->
+                                ItemFila(
+                                    item,
+                                    onItemClick,
+                                    onFavorito
+                                )
+                            }
                         }
                     }
                 }

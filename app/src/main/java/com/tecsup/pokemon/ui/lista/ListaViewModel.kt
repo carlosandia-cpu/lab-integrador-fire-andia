@@ -34,6 +34,9 @@ class ListaViewModel(
     private val _aviso = MutableStateFlow<String?>(null)
     val aviso: StateFlow<String?> = _aviso.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private val _tipo = MutableStateFlow<String?>(null)
     val tipo: StateFlow<String?> = _tipo.asStateFlow()
 
@@ -119,6 +122,7 @@ class ListaViewModel(
         if (trabajoRefresco?.isActive == true) return
 
         trabajoRefresco = viewModelScope.launch {
+            _isRefreshing.value = true
             errorSinDatos = null
             _aviso.value = null
 
@@ -160,6 +164,8 @@ class ListaViewModel(
             } catch (e: Exception) {
                 refrescoTerminado = true
                 procesarError(e)
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
