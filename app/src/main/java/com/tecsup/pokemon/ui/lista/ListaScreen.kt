@@ -1,3 +1,4 @@
+
 package com.tecsup.pokemon.ui.lista
 
 import androidx.compose.foundation.BorderStroke
@@ -10,9 +11,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,11 @@ import com.tecsup.pokemon.ui.components.Cargando
 import com.tecsup.pokemon.ui.components.ErrorView
 import com.tecsup.pokemon.ui.components.ItemFila
 
+private val RojoPokemon = Color(0xFFE3350D)
+private val AzulPokemon = Color(0xFF2A4D8F)
+private val Fondo = Color(0xFFF5F7FB)
+private val TextoOscuro = Color(0xFF263348)
+
 @Composable
 fun ListaScreen(
     viewModel: ListaViewModel,
@@ -44,29 +52,28 @@ fun ListaScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     val config = LocalConfiguration.current
-    val horizontal =
-        config.screenWidthDp > config.screenHeightDp
+    val horizontal = config.screenWidthDp > config.screenHeightDp
 
     if (horizontal) {
-        Row(modifier.fillMaxSize()) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+        ) {
             Column(
-                Modifier
+                modifier = Modifier
+                    .weight(0.42f)
                     .fillMaxHeight()
-                    .weight(0.38f)
                     .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp)
             ) {
                 Filtros(
-                    busqueda = busqueda,
-                    onBuscar = viewModel::buscar,
-                    region = region,
-                    onRegion = viewModel::elegirRegion,
-                    tipo = tipo,
-                    onTipo = viewModel::elegirTipo
+                    busqueda,
+                    viewModel::buscar,
+                    region,
+                    viewModel::elegirRegion,
+                    tipo,
+                    viewModel::elegirTipo
                 )
             }
-
-            VerticalDivider()
 
             Resultados(
                 estado = estado,
@@ -77,18 +84,22 @@ fun ListaScreen(
                 onLimpiarFiltros = viewModel::limpiarFiltros,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refrescar,
-                modifier = Modifier.weight(0.62f)
+                modifier = Modifier.weight(0.58f)
             )
         }
     } else {
-        Column(modifier.fillMaxSize()) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .then(Modifier)
+        ) {
             Filtros(
-                busqueda = busqueda,
-                onBuscar = viewModel::buscar,
-                region = region,
-                onRegion = viewModel::elegirRegion,
-                tipo = tipo,
-                onTipo = viewModel::elegirTipo
+                busqueda,
+                viewModel::buscar,
+                region,
+                viewModel::elegirRegion,
+                tipo,
+                viewModel::elegirTipo
             )
 
             Resultados(
@@ -115,72 +126,180 @@ private fun Filtros(
     tipo: String?,
     onTipo: (String?) -> Unit
 ) {
-    OutlinedTextField(
-        value = busqueda,
-        onValueChange = onBuscar,
-        label = { Text("Buscar por nombre") },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-    )
-
-    Text(
-        "Región",
-        style = MaterialTheme.typography.labelMedium,
-        modifier = Modifier.padding(start = 12.dp, top = 4.dp)
-    )
-
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            FilterChip(
-                selected = region == null,
-                onClick = { onRegion(null) },
-                label = { Text("Todas") }
+    Column {
+        Surface(
+            color = RojoPokemon,
+            shape = RoundedCornerShape(
+                bottomStart = 22.dp,
+                bottomEnd = 22.dp
             )
-        }
-
-        items(Regiones.todas) { r ->
-            FilterChip(
-                selected = region == r,
-                onClick = { onRegion(r) },
-                label = { Text(r.nombre) }
-            )
-        }
-    }
-
-    Text(
-        "Tipo",
-        style = MaterialTheme.typography.labelMedium,
-        modifier = Modifier.padding(start = 12.dp, top = 4.dp)
-    )
-
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            FilterChip(
-                selected = tipo == null,
-                onClick = { onTipo(null) },
-                label = { Text("Todos") }
-            )
-        }
-
-        items(Tipos.todos) { t ->
-            FilterChip(
-                selected = tipo == t,
-                onClick = { onTipo(t) },
-                label = { Text(Tipos.nombre(t)) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Tipos.color(t)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 14.dp
+                    )
+            ) {
+                Text(
+                    text = "POKÉDEX",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
                 )
-            )
+
+                Text(
+                    text = "¡Explora el mundo Pokémon!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = busqueda,
+                    onValueChange = onBuscar,
+                    placeholder = {
+                        Text("Buscar Pokémon...")
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        if (busqueda.isNotEmpty()) {
+                            IconButton(
+                                onClick = { onBuscar("") }
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Borrar búsqueda"
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = AzulPokemon,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            text = "REGIÓN",
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelMedium,
+            color = TextoOscuro,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            item {
+                ChipPokemon(
+                    "Todas",
+                    region == null,
+                    AzulPokemon
+                ) {
+                    onRegion(null)
+                }
+            }
+
+            items(Regiones.todas) { r ->
+                ChipPokemon(
+                    r.nombre,
+                    region == r,
+                    AzulPokemon
+                ) {
+                    onRegion(r)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "TIPO",
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelMedium,
+            color = TextoOscuro,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            item {
+                ChipPokemon(
+                    "Todos",
+                    tipo == null,
+                    AzulPokemon
+                ) {
+                    onTipo(null)
+                }
+            }
+
+            items(Tipos.todos) { t ->
+                ChipPokemon(
+                    Tipos.nombre(t),
+                    tipo == t,
+                    Tipos.color(t)
+                ) {
+                    onTipo(t)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
     }
+}
+
+@Composable
+private fun ChipPokemon(
+    texto: String,
+    seleccionado: Boolean,
+    color: Color,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = seleccionado,
+        onClick = onClick,
+        label = {
+            Text(
+                texto,
+                fontWeight = if (seleccionado)
+                    FontWeight.Bold
+                else FontWeight.Normal
+            )
+        },
+        shape = RoundedCornerShape(12.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = Color.White,
+            selectedContainerColor = color,
+            selectedLabelColor = Color.White,
+            labelColor = TextoOscuro
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = seleccionado,
+            borderColor = Color(0xFFD8DEE9),
+            selectedBorderColor = color
+        )
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,23 +315,30 @@ private fun Resultados(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pullRefreshState = rememberPullToRefreshState()
-
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
-        state = pullRefreshState,
         modifier = modifier
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             if (aviso != null) {
-                Text(
-                    aviso,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(12.dp)
-                )
+                Surface(
+                    color = Color(0xFFFFF0D9),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = aviso,
+                        color = Color(0xFF955A00),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
 
             when (val e = estado) {
@@ -238,28 +364,60 @@ private fun Resultados(
                 }
 
                 is UiState.Exito -> {
-                    Text(
-                        "${e.datos.size} Pokémon",
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(
-                            start = 12.dp,
-                            top = 6.dp,
-                            bottom = 4.dp
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Pokémon encontrados",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = TextoOscuro
                         )
-                    )
+
+                        Surface(
+                            color = AzulPokemon,
+                            shape = CircleShape
+                        ) {
+                            Text(
+                                text = "${e.datos.size}",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(
+                                    horizontal = 12.dp,
+                                    vertical = 5.dp
+                                )
+                            )
+                        }
+                    }
 
                     if (e.datos.isEmpty()) {
                         Box(
                             Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            EmptyResultView(onLimpiarFiltros = onLimpiarFiltros)
+                            EmptyResultView(
+                                onLimpiarFiltros
+                            )
                         }
                     } else {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                bottom = 12.dp
+                            )
                         ) {
-                            items(e.datos, key = { it.id }) { item ->
+                            items(
+                                e.datos,
+                                key = { it.id }
+                            ) { item ->
                                 ItemFila(
                                     item,
                                     onItemClick,
@@ -276,90 +434,85 @@ private fun Resultados(
 
 @Composable
 private fun EmptyResultView(
-    onLimpiarFiltros: () -> Unit,
-    modifier: Modifier = Modifier
+    onLimpiarFiltros: () -> Unit
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         PokeBallEmptyIcon()
-        Spacer(Modifier.height(16.dp))
+
+        Spacer(Modifier.height(18.dp))
+
         Text(
-            "¡No encontramos ningún Pokémon!",
+            text = "¡No encontramos ningún Pokémon!",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = TextoOscuro
         )
+
         Spacer(Modifier.height(6.dp))
+
         Text(
-            "Prueba con otro nombre, región o tipo",
+            text = "Prueba con otro nombre, región o tipo",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.Gray
         )
+
         Spacer(Modifier.height(20.dp))
+
         Button(
             onClick = onLimpiarFiltros,
-            shape = RoundedCornerShape(50),
+            shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFE3350D) // Classic Pokémon Red
+                containerColor = RojoPokemon
             )
         ) {
-            Text("Limpiar filtros", color = Color.White)
+            Text("Limpiar filtros")
         }
     }
 }
 
 @Composable
-private fun PokeBallEmptyIcon(modifier: Modifier = Modifier) {
+private fun PokeBallEmptyIcon() {
     Box(
-        modifier = modifier.size(72.dp),
+        modifier = Modifier.size(72.dp),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-
-            // Top half red
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(Color(0xFFF5F5F5))
             drawArc(
-                color = Color(0xFFE3350D), // Classic Pokémon Red
+                color = RojoPokemon,
                 startAngle = 180f,
                 sweepAngle = 180f,
                 useCenter = true
             )
-            // Bottom half white
-            drawArc(
-                color = Color(0xFFF5F5F5),
-                startAngle = 0f,
-                sweepAngle = 180f,
-                useCenter = true
-            )
-            // Center dividing line (black band)
             drawRect(
                 color = Color(0xFF212121),
-                size = androidx.compose.ui.geometry.Size(width, height * 0.12f),
-                topLeft = androidx.compose.ui.geometry.Offset(0f, height * 0.44f)
+                topLeft = androidx.compose.ui.geometry.Offset(
+                    0f,
+                    size.height * 0.45f
+                ),
+                size = androidx.compose.ui.geometry.Size(
+                    size.width,
+                    size.height * 0.1f
+                )
             )
         }
-        // Inner button circle
+
         Surface(
-            modifier = Modifier.size(26.dp),
+            modifier = Modifier.size(24.dp),
             shape = CircleShape,
             color = Color.White,
-            border = BorderStroke(3.dp, Color(0xFF212121))
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Surface(
-                    modifier = Modifier.size(10.dp),
-                    shape = CircleShape,
-                    color = Color(0xFF212121)
-                ) {}
-            }
-        }
+            border = BorderStroke(
+                4.dp,
+                Color(0xFF212121)
+            )
+        ) {}
     }
 }
