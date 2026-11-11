@@ -3,6 +3,7 @@ package com.tecsup.pokemon.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.pokemon.AppContainer
+import com.tecsup.pokemon.ui.admin.AdminViewModel
 import com.tecsup.pokemon.ui.detalle.DetalleViewModel
 import com.tecsup.pokemon.ui.favoritos.FavoritosViewModel
 import com.tecsup.pokemon.ui.lista.ListaViewModel
@@ -18,6 +19,8 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             ListaViewModel(container.itemRepository, container.notificador) as T
         modelClass.isAssignableFrom(FavoritosViewModel::class.java) ->
             FavoritosViewModel(container.itemRepository) as T
+        modelClass.isAssignableFrom(AdminViewModel::class.java) ->
+            AdminViewModel(container.itemRepository, container.notificador) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 

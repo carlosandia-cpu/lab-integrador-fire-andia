@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -26,8 +27,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.pokemon.AppContainer
+import com.tecsup.pokemon.domain.model.Rol
 import com.tecsup.pokemon.domain.model.Sesion
 import com.tecsup.pokemon.ui.ViewModelFactory
+import com.tecsup.pokemon.ui.admin.AdminScreen
+import com.tecsup.pokemon.ui.admin.AdminViewModel
 import com.tecsup.pokemon.ui.detalle.DetalleScreen
 import com.tecsup.pokemon.ui.detalle.DetalleViewModel
 import com.tecsup.pokemon.ui.favoritos.FavoritosScreen
@@ -47,7 +51,8 @@ fun AppNav(
     val factory = remember { ViewModelFactory(container) }
     val entrada by nav.currentBackStackEntryAsState()
     val ruta = entrada?.destination?.route
-    val mostrarBarra = ruta == "lista" || ruta == "favoritos" || ruta == "perfil"
+    val esAdmin = sesion.rol == Rol.ADMIN
+    val mostrarBarra = ruta == "lista" || ruta == "favoritos" || ruta == "perfil" || ruta == "admin"
 
     Scaffold(
         modifier = modifier,
@@ -68,6 +73,14 @@ fun AppNav(
                         icon = { Icon(Icons.Filled.Star, contentDescription = null) },
                         label = { Text("Favoritos") }
                     )
+                    if (esAdmin) {
+                        NavigationBarItem(
+                            selected = ruta == "admin",
+                            onClick = { irA(nav, "admin") },
+                            icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                            label = { Text("Admin") }
+                        )
+                    }
                     NavigationBarItem(
                         selected = ruta == "perfil",
                         onClick = { irA(nav, "perfil") },
@@ -96,6 +109,12 @@ fun AppNav(
                     viewModel = vm,
                     onItemClick = { id -> nav.navigate("detalle/$id") }
                 )
+            }
+            if (esAdmin) {
+                composable("admin") {
+                    val vm: AdminViewModel = viewModel(factory = factory)
+                    AdminScreen(viewModel = vm)
+                }
             }
             composable("perfil") {
                 PerfilScreen(sesion = sesion, onCerrarSesion = onCerrarSesion)
