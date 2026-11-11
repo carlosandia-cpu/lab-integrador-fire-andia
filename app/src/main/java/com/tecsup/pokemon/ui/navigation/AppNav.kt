@@ -39,6 +39,7 @@ import com.tecsup.pokemon.ui.favoritos.FavoritosViewModel
 import com.tecsup.pokemon.ui.lista.ListaScreen
 import com.tecsup.pokemon.ui.lista.ListaViewModel
 import com.tecsup.pokemon.ui.login.PerfilScreen
+import com.tecsup.pokemon.ui.login.PerfilViewModel
 
 @Composable
 fun AppNav(
@@ -117,7 +118,11 @@ fun AppNav(
                 }
             }
             composable("perfil") {
-                PerfilScreen(sesion = sesion, onCerrarSesion = onCerrarSesion)
+                val vm: PerfilViewModel = viewModel(
+                    key = "perfil-${sesion.uid}",
+                    factory = factory.paraPerfil(sesion.uid)
+                )
+                PerfilScreen(sesion = sesion, viewModel = vm, onCerrarSesion = onCerrarSesion)
             }
             composable(
                 route = "detalle/{id}",

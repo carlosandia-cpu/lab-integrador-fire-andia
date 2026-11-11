@@ -8,6 +8,7 @@ import com.tecsup.pokemon.ui.detalle.DetalleViewModel
 import com.tecsup.pokemon.ui.favoritos.FavoritosViewModel
 import com.tecsup.pokemon.ui.lista.ListaViewModel
 import com.tecsup.pokemon.ui.login.LoginViewModel
+import com.tecsup.pokemon.ui.login.PerfilViewModel
 
 class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
 
@@ -28,5 +29,11 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
             DetalleViewModel(container.itemRepository, id) as T
+    }
+
+    fun paraPerfil(uid: String): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            PerfilViewModel(container.perfilRepository, uid) as T
     }
 }

@@ -1,26 +1,21 @@
+
 package com.tecsup.pokemon.ui.lista
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tecsup.pokemon.domain.model.Item
+import com.tecsup.pokemon.ui.Regiones
 import com.tecsup.pokemon.ui.Tipos
 import com.tecsup.pokemon.ui.UiState
 import com.tecsup.pokemon.ui.components.Cargando
@@ -36,57 +31,213 @@ fun ListaScreen(
     val estado by viewModel.visibles.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
     val tipo by viewModel.tipo.collectAsStateWithLifecycle()
+    val region by viewModel.region.collectAsStateWithLifecycle()
     val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
 
-    Column(modifier.fillMaxSize()) {
-        OutlinedTextField(
-            value = busqueda,
-            onValueChange = viewModel::buscar,
-            label = { Text("Buscar por nombre") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
-        )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            item {
-                FilterChip(
-                    selected = tipo == null,
-                    onClick = { viewModel.elegirTipo(null) },
-                    label = { Text("Todos") }
+    val config = LocalConfiguration.current
+    val horizontal =
+        config.screenWidthDp > config.screenHeightDp
+
+    if (horizontal) {
+        Row(modifier.fillMaxSize()) {
+            Column(
+                Modifier
+                    .fillMaxHeight()
+                    .weight(0.38f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 8.dp)
+            ) {
+                Filtros(
+                    busqueda = busqueda,
+                    onBuscar = viewModel::buscar,
+                    region = region,
+                    onRegion = viewModel::elegirRegion,
+                    tipo = tipo,
+                    onTipo = viewModel::elegirTipo
                 )
             }
-            items(Tipos.todos) { t ->
-                FilterChip(
-                    selected = tipo == t,
-                    onClick = { viewModel.elegirTipo(t) },
-                    label = { Text(Tipos.nombre(t)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Tipos.color(t)
-                    )
-                )
-            }
-        }
-        aviso?.let {
-            Text(
-                it,
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                color = MaterialTheme.colorScheme.error
+
+            VerticalDivider()
+
+            Resultados(
+                estado = estado,
+                aviso = aviso,
+                onItemClick = onItemClick,
+                onFavorito = viewModel::alternarFavorito,
+                onReintentar = viewModel::refrescar,
+                modifier = Modifier.weight(0.62f)
             )
         }
+    } else {
+        Column(modifier.fillMaxSize()) {
+            Filtros(
+                busqueda = busqueda,
+                onBuscar = viewModel::buscar,
+                region = region,
+                onRegion = viewModel::elegirRegion,
+                tipo = tipo,
+                onTipo = viewModel::elegirTipo
+            )
+
+            Resultados(
+                estado = estado,
+                aviso = aviso,
+                onItemClick = onItemClick,
+                onFavorito = viewModel::alternarFavorito,
+                onReintentar = viewModel::refrescar,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun Filtros(
+    busqueda: String,
+    onBuscar: (String) -> Unit,
+    region: Regiones.Region?,
+    onRegion: (Regiones.Region?) -> Unit,
+    tipo: String?,
+    onTipo: (String?) -> Unit
+) {
+    OutlinedTextField(
+        value = busqueda,
+        onValueChange = onBuscar,
+        label = { Text("Buscar por nombre") },
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+    )
+
+    Text(
+        "Región",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(start = 12.dp, top = 4.dp)
+    )
+
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            FilterChip(
+                selected = region == null,
+                onClick = { onRegion(null) },
+                label = { Text("Todas") }
+            )
+        }
+
+        items(Regiones.todas) { r ->
+            FilterChip(
+                selected = region == r,
+                onClick = { onRegion(r) },
+                label = { Text(r.nombre) }
+            )
+        }
+    }
+
+    Text(
+        "Tipo",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(start = 12.dp, top = 4.dp)
+    )
+
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            FilterChip(
+                selected = tipo == null,
+                onClick = { onTipo(null) },
+                label = { Text("Todos") }
+            )
+        }
+
+        items(Tipos.todos) { t ->
+            FilterChip(
+                selected = tipo == t,
+                onClick = { onTipo(t) },
+                label = { Text(Tipos.nombre(t)) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Tipos.color(t)
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun Resultados(
+    estado: UiState<List<Item>>,
+    aviso: String?,
+    onItemClick: (Int) -> Unit,
+    onFavorito: (Int) -> Unit,
+    onReintentar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier.fillMaxHeight()) {
+
+        if (aviso != null) {
+            Text(
+                aviso,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(12.dp)
+            )
+        }
+
         when (val e = estado) {
-            is UiState.Cargando -> Cargando()
-            is UiState.Error -> ErrorView(e.mensaje, onReintentar = viewModel::refrescar)
+            is UiState.Cargando -> {
+                Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Cargando()
+                }
+            }
+
+            is UiState.Error -> {
+                Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ErrorView(
+                        e.mensaje,
+                        onReintentar = onReintentar
+                    )
+                }
+            }
+
             is UiState.Exito -> {
+                Text(
+                    "${e.datos.size} Pokémon",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(
+                        start = 12.dp,
+                        top = 6.dp,
+                        bottom = 4.dp
+                    )
+                )
+
                 if (e.datos.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text("No hay resultados")
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         items(e.datos, key = { it.id }) { item ->
-                            ItemFila(item, onItemClick, viewModel::alternarFavorito)
+                            ItemFila(
+                                item,
+                                onItemClick,
+                                onFavorito
+                            )
                         }
                     }
                 }
