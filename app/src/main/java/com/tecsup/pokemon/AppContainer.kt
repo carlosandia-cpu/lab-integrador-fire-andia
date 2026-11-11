@@ -8,7 +8,7 @@ import com.tecsup.pokemon.data.remote.RetrofitClient
 import com.tecsup.pokemon.data.repository.ItemRepository
 import com.tecsup.pokemon.data.repository.ItemRepositoryImpl
 import com.tecsup.pokemon.notification.Notificador
-import com.tecsup.pokemon.notification.NotificadorFalso
+import com.tecsup.pokemon.notification.NotificadorAndroid
 
 class AppContainer(context: Context) {
     private val database = AppDatabase.obtener(context)
@@ -18,5 +18,5 @@ class AppContainer(context: Context) {
 
     val authRepository: AuthRepository = FirebaseAuthRepository()
 
-    val notificador: Notificador = NotificadorFalso()
+    val notificador: Notificador = NotificadorAndroid(context.applicationContext)
 }
