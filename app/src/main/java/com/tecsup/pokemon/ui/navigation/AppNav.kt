@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.pokemon.AppContainer
+import com.tecsup.pokemon.domain.model.Sesion
 import com.tecsup.pokemon.ui.ViewModelFactory
 import com.tecsup.pokemon.ui.detalle.DetalleScreen
 import com.tecsup.pokemon.ui.detalle.DetalleViewModel
@@ -31,14 +34,20 @@ import com.tecsup.pokemon.ui.favoritos.FavoritosScreen
 import com.tecsup.pokemon.ui.favoritos.FavoritosViewModel
 import com.tecsup.pokemon.ui.lista.ListaScreen
 import com.tecsup.pokemon.ui.lista.ListaViewModel
+import com.tecsup.pokemon.ui.login.PerfilScreen
 
 @Composable
-fun AppNav(container: AppContainer, modifier: Modifier = Modifier) {
+fun AppNav(
+    container: AppContainer,
+    sesion: Sesion,
+    onCerrarSesion: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val nav = rememberNavController()
     val factory = remember { ViewModelFactory(container) }
     val entrada by nav.currentBackStackEntryAsState()
     val ruta = entrada?.destination?.route
-    val mostrarBarra = ruta == "lista" || ruta == "favoritos"
+    val mostrarBarra = ruta == "lista" || ruta == "favoritos" || ruta == "perfil"
 
     Scaffold(
         modifier = modifier,
@@ -58,6 +67,12 @@ fun AppNav(container: AppContainer, modifier: Modifier = Modifier) {
                         onClick = { irA(nav, "favoritos") },
                         icon = { Icon(Icons.Filled.Star, contentDescription = null) },
                         label = { Text("Favoritos") }
+                    )
+                    NavigationBarItem(
+                        selected = ruta == "perfil",
+                        onClick = { irA(nav, "perfil") },
+                        icon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                        label = { Text("Cuenta") }
                     )
                 }
             }
@@ -82,6 +97,9 @@ fun AppNav(container: AppContainer, modifier: Modifier = Modifier) {
                     onItemClick = { id -> nav.navigate("detalle/$id") }
                 )
             }
+            composable("perfil") {
+                PerfilScreen(sesion = sesion, onCerrarSesion = onCerrarSesion)
+            }
             composable(
                 route = "detalle/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType })
@@ -97,7 +115,7 @@ fun AppNav(container: AppContainer, modifier: Modifier = Modifier) {
     }
 }
 
-private fun irA(nav: androidx.navigation.NavHostController, destino: String) {
+private fun irA(nav: NavHostController, destino: String) {
     nav.navigate(destino) {
         popUpTo(nav.graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
