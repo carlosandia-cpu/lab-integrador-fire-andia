@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.map
 import retrofit2.HttpException
 import java.io.IOException
 
-private const val LIMITE = 151  // para llegar a Hoenn: 386
+private const val LIMITE = 1025  // Pokédex nacional completa
 
 private val TIPOS = listOf(
     "normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison",
-    "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "steel", "fairy"
+    "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
 )
 
 class ItemRepositoryImpl(

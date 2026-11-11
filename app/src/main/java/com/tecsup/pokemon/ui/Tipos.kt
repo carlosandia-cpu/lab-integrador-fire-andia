@@ -9,7 +9,7 @@ object Tipos {
         "fighting" to "Lucha", "poison" to "Veneno", "ground" to "Tierra",
         "flying" to "Volador", "psychic" to "Psíquico", "bug" to "Bicho",
         "rock" to "Roca", "ghost" to "Fantasma", "dragon" to "Dragón",
-        "steel" to "Acero", "fairy" to "Hada"
+        "dark" to "Siniestro", "steel" to "Acero", "fairy" to "Hada"
     )
 
     private val colores = mapOf(
@@ -20,8 +20,8 @@ object Tipos {
         "ground" to Color(0xFFE2BF65), "flying" to Color(0xFFA98FF3),
         "psychic" to Color(0xFFF95587), "bug" to Color(0xFFA6B91A),
         "rock" to Color(0xFFB6A136), "ghost" to Color(0xFF735797),
-        "dragon" to Color(0xFF6F35FC), "steel" to Color(0xFFB7B7CE),
-        "fairy" to Color(0xFFD685AD)
+        "dragon" to Color(0xFF6F35FC), "dark" to Color(0xFF705746),
+        "steel" to Color(0xFFB7B7CE), "fairy" to Color(0xFFD685AD)
     )
 
     private val stats = mapOf(
