@@ -1,10 +1,14 @@
 package com.tecsup.pokemon.ui.lista
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -12,7 +16,10 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.pokemon.domain.model.Item
@@ -67,6 +74,7 @@ fun ListaScreen(
                 onItemClick = onItemClick,
                 onFavorito = viewModel::alternarFavorito,
                 onReintentar = viewModel::refrescar,
+                onLimpiarFiltros = viewModel::limpiarFiltros,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refrescar,
                 modifier = Modifier.weight(0.62f)
@@ -89,6 +97,7 @@ fun ListaScreen(
                 onItemClick = onItemClick,
                 onFavorito = viewModel::alternarFavorito,
                 onReintentar = viewModel::refrescar,
+                onLimpiarFiltros = viewModel::limpiarFiltros,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refrescar,
                 modifier = Modifier.weight(1f)
@@ -182,6 +191,7 @@ private fun Resultados(
     onItemClick: (Int) -> Unit,
     onFavorito: (Int) -> Unit,
     onReintentar: () -> Unit,
+    onLimpiarFiltros: () -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -243,7 +253,7 @@ private fun Resultados(
                             Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No hay resultados")
+                            EmptyResultView(onLimpiarFiltros = onLimpiarFiltros)
                         }
                     } else {
                         LazyColumn(
@@ -259,6 +269,96 @@ private fun Resultados(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyResultView(
+    onLimpiarFiltros: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        PokeBallEmptyIcon()
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "¡No encontramos ningún Pokémon!",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "Prueba con otro nombre, región o tipo",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = onLimpiarFiltros,
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFE3350D) // Classic Pokémon Red
+            )
+        ) {
+            Text("Limpiar filtros", color = Color.White)
+        }
+    }
+}
+
+@Composable
+private fun PokeBallEmptyIcon(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.size(72.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+
+            // Top half red
+            drawArc(
+                color = Color(0xFFE3350D), // Classic Pokémon Red
+                startAngle = 180f,
+                sweepAngle = 180f,
+                useCenter = true
+            )
+            // Bottom half white
+            drawArc(
+                color = Color(0xFFF5F5F5),
+                startAngle = 0f,
+                sweepAngle = 180f,
+                useCenter = true
+            )
+            // Center dividing line (black band)
+            drawRect(
+                color = Color(0xFF212121),
+                size = androidx.compose.ui.geometry.Size(width, height * 0.12f),
+                topLeft = androidx.compose.ui.geometry.Offset(0f, height * 0.44f)
+            )
+        }
+        // Inner button circle
+        Surface(
+            modifier = Modifier.size(26.dp),
+            shape = CircleShape,
+            color = Color.White,
+            border = BorderStroke(3.dp, Color(0xFF212121))
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Surface(
+                    modifier = Modifier.size(10.dp),
+                    shape = CircleShape,
+                    color = Color(0xFF212121)
+                ) {}
             }
         }
     }

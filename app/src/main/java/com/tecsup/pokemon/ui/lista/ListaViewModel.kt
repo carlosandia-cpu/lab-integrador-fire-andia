@@ -203,6 +203,12 @@ class ListaViewModel(
         _busqueda.value = texto
     }
 
+    fun limpiarFiltros() {
+        _tipo.value = null
+        _region.value = null
+        _busqueda.value = ""
+    }
+
     private fun mensajeDe(e: Throwable): String =
         when (e) {
             is IOException ->
