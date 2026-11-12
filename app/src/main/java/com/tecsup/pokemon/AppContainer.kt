@@ -4,6 +4,8 @@ import android.content.Context
 import com.tecsup.pokemon.data.auth.AuthRepository
 import com.tecsup.pokemon.data.auth.FirebaseAuthRepository
 import com.tecsup.pokemon.data.local.AppDatabase
+import com.tecsup.pokemon.data.perfil.PerfilRepository
+import com.tecsup.pokemon.data.perfil.PerfilRepositoryImpl
 import com.tecsup.pokemon.data.remote.RetrofitClient
 import com.tecsup.pokemon.data.repository.ItemRepository
 import com.tecsup.pokemon.data.repository.ItemRepositoryImpl
@@ -17,6 +19,8 @@ class AppContainer(context: Context) {
         ItemRepositoryImpl(RetrofitClient.api, database.itemDao())
 
     val authRepository: AuthRepository = FirebaseAuthRepository()
+
+    val perfilRepository: PerfilRepository = PerfilRepositoryImpl(context)
 
     val notificador: Notificador = NotificadorAndroid(context.applicationContext)
 }
