@@ -1,11 +1,10 @@
-
 package com.tecsup.pokemon.ui.lista
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -32,11 +32,10 @@ import com.tecsup.pokemon.ui.UiState
 import com.tecsup.pokemon.ui.components.Cargando
 import com.tecsup.pokemon.ui.components.ErrorView
 import com.tecsup.pokemon.ui.components.ItemFila
+import com.tecsup.pokemon.ui.components.FondoPokemon
 
-private val RojoPokemon = Color(0xFFE3350D)
-private val AzulPokemon = Color(0xFF2A4D8F)
-private val Fondo = Color(0xFFF5F7FB)
-private val TextoOscuro = Color(0xFF263348)
+private val RojoPokemon = Color(0xFFFFCB05)
+private val AzulPokemon = Color(0xFF173B73)
 
 @Composable
 fun ListaScreen(
@@ -54,16 +53,44 @@ fun ListaScreen(
     val config = LocalConfiguration.current
     val horizontal = config.screenWidthDp > config.screenHeightDp
 
-    if (horizontal) {
-        Row(
-            modifier = modifier
-                .fillMaxSize()
-        ) {
+    FondoPokemon(modifier = modifier.fillMaxSize()) {
+        if (horizontal) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(0.42f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Filtros(
+                        busqueda,
+                        viewModel::buscar,
+                        region,
+                        viewModel::elegirRegion,
+                        tipo,
+                        viewModel::elegirTipo
+                    )
+                }
+
+                Resultados(
+                    estado = estado,
+                    aviso = aviso,
+                    onItemClick = onItemClick,
+                    onFavorito = viewModel::alternarFavorito,
+                    onReintentar = viewModel::refrescar,
+                    onLimpiarFiltros = viewModel::limpiarFiltros,
+                    isRefreshing = isRefreshing,
+                    onRefresh = viewModel::refrescar,
+                    modifier = Modifier.weight(0.58f)
+                )
+            }
+        } else {
             Column(
                 modifier = Modifier
-                    .weight(0.42f)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
             ) {
                 Filtros(
                     busqueda,
@@ -73,48 +100,22 @@ fun ListaScreen(
                     tipo,
                     viewModel::elegirTipo
                 )
+
+                Resultados(
+                    estado = estado,
+                    aviso = aviso,
+                    onItemClick = onItemClick,
+                    onFavorito = viewModel::alternarFavorito,
+                    onReintentar = viewModel::refrescar,
+                    onLimpiarFiltros = viewModel::limpiarFiltros,
+                    isRefreshing = isRefreshing,
+                    onRefresh = viewModel::refrescar,
+                    modifier = Modifier.weight(1f)
+                )
             }
-
-            Resultados(
-                estado = estado,
-                aviso = aviso,
-                onItemClick = onItemClick,
-                onFavorito = viewModel::alternarFavorito,
-                onReintentar = viewModel::refrescar,
-                onLimpiarFiltros = viewModel::limpiarFiltros,
-                isRefreshing = isRefreshing,
-                onRefresh = viewModel::refrescar,
-                modifier = Modifier.weight(0.58f)
-            )
-        }
-    } else {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .then(Modifier)
-        ) {
-            Filtros(
-                busqueda,
-                viewModel::buscar,
-                region,
-                viewModel::elegirRegion,
-                tipo,
-                viewModel::elegirTipo
-            )
-
-            Resultados(
-                estado = estado,
-                aviso = aviso,
-                onItemClick = onItemClick,
-                onFavorito = viewModel::alternarFavorito,
-                onReintentar = viewModel::refrescar,
-                onLimpiarFiltros = viewModel::limpiarFiltros,
-                isRefreshing = isRefreshing,
-                onRefresh = viewModel::refrescar,
-                modifier = Modifier.weight(1f)
-            )
         }
     }
+
 }
 
 @Composable
@@ -126,67 +127,47 @@ private fun Filtros(
     tipo: String?,
     onTipo: (String?) -> Unit
 ) {
+    var menuRegion by remember { mutableStateOf(false) }
+    var menuTipo by remember { mutableStateOf(false) }
+
     Column {
         Surface(
-            color = RojoPokemon,
-            shape = RoundedCornerShape(
-                bottomStart = 22.dp,
-                bottomEnd = 22.dp
-            )
+            color = AzulPokemon.copy(alpha = 0.96f),
+            shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 14.dp
-                    )
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(9.dp)
             ) {
                 Text(
-                    text = "POKÉDEX",
-                    style = MaterialTheme.typography.headlineMedium,
+                    "POKÉDEX",
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
+                    color = RojoPokemon
+                )
+                Text(
+                    "¡Explora el mundo Pokémon!",
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.White
                 )
-
-                Text(
-                    text = "¡Explora el mundo Pokémon!",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-
-                Spacer(Modifier.height(12.dp))
-
                 OutlinedTextField(
                     value = busqueda,
                     onValueChange = onBuscar,
-                    placeholder = {
-                        Text("Buscar Pokémon...")
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
+                    placeholder = { Text("Buscar Pokémon...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (busqueda.isNotEmpty()) {
-                            IconButton(
-                                onClick = { onBuscar("") }
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Borrar búsqueda"
-                                )
+                            IconButton(onClick = { onBuscar("") }) {
+                                Icon(Icons.Default.Close, contentDescription = "Borrar búsqueda")
                             }
                         }
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = AzulPokemon,
+                        focusedContainerColor = Color.White.copy(alpha = 0.95f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.95f),
+                        focusedBorderColor = RojoPokemon,
                         unfocusedBorderColor = Color.Transparent
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -194,112 +175,74 @@ private fun Filtros(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = "REGIÓN",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelMedium,
-            color = TextoOscuro,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item {
-                ChipPokemon(
-                    "Todas",
-                    region == null,
-                    AzulPokemon
+            Box(modifier = Modifier.weight(1f)) {
+                OutlinedButton(
+                    onClick = { menuRegion = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = AzulPokemon.copy(alpha = 0.88f),
+                        contentColor = Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
-                    onRegion(null)
+                    Text(region?.nombre ?: "Región: Todas", maxLines = 1, modifier = Modifier.weight(1f))
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+                DropdownMenu(
+                    expanded = menuRegion,
+                    onDismissRequest = { menuRegion = false },
+                    modifier = Modifier.heightIn(max = 288.dp)
+                ) {
+                    DropdownMenuItem(text = { Text("Todas las regiones") }, onClick = {
+                        onRegion(null)
+                        menuRegion = false
+                    })
+                    Regiones.todas.forEach { r ->
+                        DropdownMenuItem(text = { Text(r.nombre) }, onClick = {
+                            onRegion(r)
+                            menuRegion = false
+                        })
+                    }
                 }
             }
-
-            items(Regiones.todas) { r ->
-                ChipPokemon(
-                    r.nombre,
-                    region == r,
-                    AzulPokemon
+            Box(modifier = Modifier.weight(1f)) {
+                OutlinedButton(
+                    onClick = { menuTipo = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = AzulPokemon.copy(alpha = 0.88f),
+                        contentColor = Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
-                    onRegion(r)
+                    Text(tipo?.let { Tipos.nombre(it) } ?: "Tipo: Todos", maxLines = 1, modifier = Modifier.weight(1f))
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+                DropdownMenu(
+                    expanded = menuTipo,
+                    onDismissRequest = { menuTipo = false },
+                    modifier = Modifier.heightIn(max = 288.dp)
+                ) {
+                    DropdownMenuItem(text = { Text("Todos los tipos") }, onClick = {
+                        onTipo(null)
+                        menuTipo = false
+                    })
+                    Tipos.todos.forEach { t ->
+                        DropdownMenuItem(text = { Text(Tipos.nombre(t)) }, onClick = {
+                            onTipo(t)
+                            menuTipo = false
+                        })
+                    }
                 }
             }
         }
-
-        Spacer(Modifier.height(4.dp))
-
-        Text(
-            text = "TIPO",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelMedium,
-            color = TextoOscuro,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(7.dp)
-        ) {
-            item {
-                ChipPokemon(
-                    "Todos",
-                    tipo == null,
-                    AzulPokemon
-                ) {
-                    onTipo(null)
-                }
-            }
-
-            items(Tipos.todos) { t ->
-                ChipPokemon(
-                    Tipos.nombre(t),
-                    tipo == t,
-                    Tipos.color(t)
-                ) {
-                    onTipo(t)
-                }
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
     }
-}
-
-@Composable
-private fun ChipPokemon(
-    texto: String,
-    seleccionado: Boolean,
-    color: Color,
-    onClick: () -> Unit
-) {
-    FilterChip(
-        selected = seleccionado,
-        onClick = onClick,
-        label = {
-            Text(
-                texto,
-                fontWeight = if (seleccionado)
-                    FontWeight.Bold
-                else FontWeight.Normal
-            )
-        },
-        shape = RoundedCornerShape(12.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = Color.White,
-            selectedContainerColor = color,
-            selectedLabelColor = Color.White,
-            labelColor = TextoOscuro
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = seleccionado,
-            borderColor = Color(0xFFD8DEE9),
-            selectedBorderColor = color
-        )
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -315,6 +258,8 @@ private fun Resultados(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var pagina by remember { mutableIntStateOf(0) }
+    val tamanoPagina = 6
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
@@ -367,10 +312,7 @@ private fun Resultados(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                horizontal = 16.dp,
-                                vertical = 8.dp
-                            ),
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -378,7 +320,7 @@ private fun Resultados(
                             text = "Pokémon encontrados",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = TextoOscuro
+                            color = Color.White
                         )
 
                         Surface(
@@ -408,6 +350,9 @@ private fun Resultados(
                             )
                         }
                     } else {
+                        val totalPaginas = (e.datos.size + tamanoPagina - 1) / tamanoPagina
+                        val paginaActual = pagina.coerceIn(0, (totalPaginas - 1).coerceAtLeast(0))
+                        val visibles = e.datos.drop(paginaActual * tamanoPagina).take(tamanoPagina)
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(
@@ -415,7 +360,7 @@ private fun Resultados(
                             )
                         ) {
                             items(
-                                e.datos,
+                                visibles,
                                 key = { it.id }
                             ) { item ->
                                 ItemFila(
@@ -423,6 +368,21 @@ private fun Resultados(
                                     onItemClick,
                                     onFavorito
                                 )
+                            }
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    OutlinedButton(onClick = { pagina = (paginaActual - 1).coerceAtLeast(0) }, enabled = paginaActual > 0) {
+                                        Text("Anterior")
+                                    }
+                                    Text("${paginaActual + 1} / $totalPaginas", color = Color.White)
+                                    OutlinedButton(onClick = { pagina = paginaActual + 1 }, enabled = paginaActual + 1 < totalPaginas) {
+                                        Text("Siguiente")
+                                    }
+                                }
                             }
                         }
                     }
@@ -452,7 +412,7 @@ private fun EmptyResultView(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = TextoOscuro
+            color = Color.White
         )
 
         Spacer(Modifier.height(6.dp))
@@ -461,7 +421,7 @@ private fun EmptyResultView(
             text = "Prueba con otro nombre, región o tipo",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = Color.Gray
+            color = Color.White
         )
 
         Spacer(Modifier.height(20.dp))
@@ -470,7 +430,7 @@ private fun EmptyResultView(
             onClick = onLimpiarFiltros,
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = RojoPokemon
+                containerColor = AzulPokemon
             )
         ) {
             Text("Limpiar filtros")
