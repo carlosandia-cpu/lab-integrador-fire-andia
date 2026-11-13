@@ -1,16 +1,29 @@
-
 package com.tecsup.pokemon.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,7 +41,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
 import com.tecsup.pokemon.AppContainer
 import com.tecsup.pokemon.domain.model.Rol
 import com.tecsup.pokemon.domain.model.Sesion
@@ -56,20 +68,19 @@ fun AppNav(
     modifier: Modifier = Modifier
 ) {
     val nav = rememberNavController()
-
     val factory = remember(container) {
         ViewModelFactory(container)
     }
 
     val entrada by nav.currentBackStackEntryAsState()
     val ruta = entrada?.destination?.route
-
     val esAdmin = sesion.rol == Rol.ADMIN
 
-    val mostrarBarra = ruta == "lista" ||
-            ruta == "favoritos" ||
-            ruta == "perfil" ||
-            ruta == "admin"
+    val mostrarBarra =
+        ruta == "lista" ||
+                ruta == "favoritos" ||
+                ruta == "perfil" ||
+                ruta == "admin"
 
     FondoPokemon(
         modifier = modifier.fillMaxSize()
@@ -77,8 +88,7 @@ fun AppNav(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
-            contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
-
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (mostrarBarra) {
                     Row(
@@ -90,16 +100,20 @@ fun AppNav(
                             .navigationBarsPadding()
                             .padding(
                                 horizontal = 4.dp,
-                                vertical = 6.dp
+                                vertical = 2.dp
                             ),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement =
+                            Arrangement.SpaceEvenly,
+                        verticalAlignment =
+                            Alignment.CenterVertically
                     ) {
                         Box(Modifier.weight(1f)) {
                             TabPokemon(
-                                seleccionado = ruta == "lista",
+                                seleccionado =
+                                    ruta == "lista",
                                 titulo = "Pokédex",
-                                icono = Icons.AutoMirrored.Filled.List,
+                                icono =
+                                    Icons.AutoMirrored.Filled.List,
                                 onClick = {
                                     irA(nav, "lista")
                                 }
@@ -108,9 +122,11 @@ fun AppNav(
 
                         Box(Modifier.weight(1f)) {
                             TabPokemon(
-                                seleccionado = ruta == "favoritos",
+                                seleccionado =
+                                    ruta == "favoritos",
                                 titulo = "Favoritos",
-                                icono = Icons.Filled.Star,
+                                icono =
+                                    Icons.Filled.Star,
                                 onClick = {
                                     irA(nav, "favoritos")
                                 }
@@ -120,9 +136,11 @@ fun AppNav(
                         if (esAdmin) {
                             Box(Modifier.weight(1f)) {
                                 TabPokemon(
-                                    seleccionado = ruta == "admin",
+                                    seleccionado =
+                                        ruta == "admin",
                                     titulo = "Admin",
-                                    icono = Icons.Filled.Settings,
+                                    icono =
+                                        Icons.Filled.Settings,
                                     onClick = {
                                         irA(nav, "admin")
                                     }
@@ -132,9 +150,11 @@ fun AppNav(
 
                         Box(Modifier.weight(1f)) {
                             TabPokemon(
-                                seleccionado = ruta == "perfil",
+                                seleccionado =
+                                    ruta == "perfil",
                                 titulo = "Cuenta",
-                                icono = Icons.Filled.Person,
+                                icono =
+                                    Icons.Filled.Person,
                                 onClick = {
                                     irA(nav, "perfil")
                                 }
@@ -150,12 +170,9 @@ fun AppNav(
                 startDestination = "lista",
                 modifier = Modifier.padding(padding)
             ) {
-
-                // POKÉDEX
                 composable("lista") {
-                    val vm: ListaViewModel = viewModel(
-                        factory = factory
-                    )
+                    val vm: ListaViewModel =
+                        viewModel(factory = factory)
 
                     ListaScreen(
                         viewModel = vm,
@@ -165,11 +182,9 @@ fun AppNav(
                     )
                 }
 
-                // FAVORITOS
                 composable("favoritos") {
-                    val vm: FavoritosViewModel = viewModel(
-                        factory = factory
-                    )
+                    val vm: FavoritosViewModel =
+                        viewModel(factory = factory)
 
                     FavoritosScreen(
                         viewModel = vm,
@@ -179,12 +194,10 @@ fun AppNav(
                     )
                 }
 
-                // ADMINISTRADOR
                 if (esAdmin) {
                     composable("admin") {
-                        val vm: AdminViewModel = viewModel(
-                            factory = factory
-                        )
+                        val vm: AdminViewModel =
+                            viewModel(factory = factory)
 
                         AdminScreen(
                             viewModel = vm
@@ -192,23 +205,24 @@ fun AppNav(
                     }
                 }
 
-                // CUENTA
                 composable("perfil") {
-                    val vm: PerfilViewModel = viewModel(
-                        key = "perfil-${sesion.uid}",
-                        factory = factory.paraPerfil(
-                            sesion.uid
+                    val vm: PerfilViewModel =
+                        viewModel(
+                            key = "perfil-${sesion.uid}",
+                            factory =
+                                factory.paraPerfil(
+                                    sesion.uid
+                                )
                         )
-                    )
 
                     PerfilScreen(
                         sesion = sesion,
                         viewModel = vm,
-                        onCerrarSesion = onCerrarSesion
+                        onCerrarSesion =
+                            onCerrarSesion
                     )
                 }
 
-                // DETALLE
                 composable(
                     route = "detalle/{id}",
                     arguments = listOf(
@@ -218,13 +232,16 @@ fun AppNav(
                     )
                 ) { entry ->
 
-                    val id = entry.arguments
-                        ?.getInt("id") ?: 0
+                    val id =
+                        entry.arguments
+                            ?.getInt("id") ?: 0
 
-                    val vm: DetalleViewModel = viewModel(
-                        key = "detalle-$id",
-                        factory = factory.paraDetalle(id)
-                    )
+                    val vm: DetalleViewModel =
+                        viewModel(
+                            key = "detalle-$id",
+                            factory =
+                                factory.paraDetalle(id)
+                        )
 
                     DetalleScreen(
                         viewModel = vm,
@@ -238,7 +255,6 @@ fun AppNav(
     }
 }
 
-// BARRA INFERIOR PERSONALIZADA
 @Composable
 private fun TabPokemon(
     seleccionado: Boolean,
@@ -250,9 +266,11 @@ private fun TabPokemon(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 5.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(vertical = 2.dp),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.Center
     ) {
         Surface(
             color = if (seleccionado)
@@ -269,13 +287,13 @@ private fun TabPokemon(
                 else
                     Color.White,
                 modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 5.dp
+                    horizontal = 14.dp,
+                    vertical = 3.dp
                 )
             )
         }
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(2.dp))
 
         Text(
             text = titulo,
@@ -283,12 +301,12 @@ private fun TabPokemon(
                 Dorado
             else
                 Color.White,
-            style = MaterialTheme.typography.labelSmall
+            style =
+                MaterialTheme.typography.labelSmall
         )
     }
 }
 
-// NAVEGACIÓN SIN DUPLICAR PANTALLAS
 private fun irA(
     nav: NavHostController,
     destino: String

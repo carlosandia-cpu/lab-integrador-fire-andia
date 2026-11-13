@@ -3,7 +3,16 @@ package com.tecsup.pokemon.ui.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -12,12 +21,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -26,12 +47,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.pokemon.R
 import com.tecsup.pokemon.ui.UiState
+
+private val AzulRegistro = Color(0xFF173B73)
+private val DoradoRegistro = Color(0xFFFFCB05)
 
 @Composable
 fun RegistroScreen(
@@ -39,391 +61,574 @@ fun RegistroScreen(
     onVolverLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val estado by viewModel.estado.collectAsStateWithLifecycle()
 
-    var correo by rememberSaveable { mutableStateOf("") }
-    var clave by rememberSaveable { mutableStateOf("") }
-    var confirmar by rememberSaveable { mutableStateOf("") }
+    val registroEstado by
+    viewModel.registroEstado
+        .collectAsStateWithLifecycle()
 
-    var claveVisible by rememberSaveable {
-        mutableStateOf(false)
+    var correo by rememberSaveable {
+        mutableStateOf("")
     }
-    var confirmarVisible by rememberSaveable {
-        mutableStateOf(false)
+
+    var clave by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var confirmarClave by rememberSaveable {
+        mutableStateOf("")
     }
 
     var correoError by rememberSaveable {
         mutableStateOf<String?>(null)
     }
+
     var claveError by rememberSaveable {
         mutableStateOf<String?>(null)
     }
+
     var confirmarError by rememberSaveable {
         mutableStateOf<String?>(null)
     }
 
-    val azul = Color(0xFF183B78)
-    val dorado = Color(0xFFFFD54F)
-    val rojo = Color(0xFFE93612)
-    val crema = Color(0xFFFFFAED)
+    var claveVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-    val cargando = estado is UiState.Cargando
+    var confirmarVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    /*
+     * Cuando el registro termina correctamente,
+     * volvemos automáticamente al Login.
+     */
+    LaunchedEffect(registroEstado) {
+
+        if (registroEstado is UiState.Exito) {
+
+            viewModel.limpiarEstadoRegistro()
+
+            onVolverLogin()
+        }
+    }
 
     val registrar = {
-        val email = correo.trim()
 
-        correoError = when {
-            email.isEmpty() -> "Ingresa tu correo electrónico"
-            !android.util.Patterns.EMAIL_ADDRESS
-                .matcher(email).matches() ->
-                "Ingresa un correo válido"
-            else -> null
-        }
+        var valido = true
 
-        claveError = when {
-            clave.isEmpty() -> "Ingresa una contraseña"
-            clave.length < 6 ->
-                "Mínimo 6 caracteres"
-            else -> null
-        }
+        val correoLimpio =
+            correo.trim()
 
-        confirmarError = when {
-            confirmar.isEmpty() ->
-                "Confirma tu contraseña"
-            confirmar != clave ->
-                "Las contraseñas no coinciden"
-            else -> null
-        }
+        if (correoLimpio.isEmpty()) {
 
-        if (
-            correoError == null &&
-            claveError == null &&
-            confirmarError == null &&
-            !cargando
+            correoError =
+                "Ingresa tu correo electrónico"
+
+            valido = false
+
+        } else if (
+            !android.util.Patterns
+                .EMAIL_ADDRESS
+                .matcher(correoLimpio)
+                .matches()
         ) {
-            viewModel.registrarUsuario(email, clave)
+
+            correoError =
+                "Ingresa un correo válido"
+
+            valido = false
+
+        } else {
+
+            correoError = null
+        }
+
+        if (clave.isEmpty()) {
+
+            claveError =
+                "Ingresa una contraseña"
+
+            valido = false
+
+        } else if (clave.length < 6) {
+
+            claveError =
+                "La contraseña debe tener mínimo 6 caracteres"
+
+            valido = false
+
+        } else {
+
+            claveError = null
+        }
+
+        if (confirmarClave.isEmpty()) {
+
+            confirmarError =
+                "Confirma tu contraseña"
+
+            valido = false
+
+        } else if (
+            confirmarClave != clave
+        ) {
+
+            confirmarError =
+                "Las contraseñas no coinciden"
+
+            valido = false
+
+        } else {
+
+            confirmarError = null
+        }
+
+        if (valido) {
+
+            viewModel.registrarUsuario(
+                correoLimpio,
+                clave
+            )
         }
     }
 
     Box(
         modifier = modifier.fillMaxSize()
     ) {
+
         Image(
-            painter = painterResource(R.drawable.fondo_login),
+            painter =
+                painterResource(
+                    R.drawable.fondo_login
+                ),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.16f))
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    horizontal = 24.dp,
+                    vertical = 24.dp
+                ),
+            horizontalAlignment =
+                Alignment.CenterHorizontally,
+            verticalArrangement =
+                Arrangement.Center
         ) {
-            Spacer(Modifier.height(24.dp))
 
             Image(
-                painter = painterResource(
-                    R.drawable.logo_pokedex
-                ),
-                contentDescription = "Pokédex",
-                contentScale = ContentScale.Fit,
+                painter =
+                    painterResource(
+                        R.drawable.logo_pokedex
+                    ),
+                contentDescription =
+                    "Logo Pokédex",
+                contentScale =
+                    ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(115.dp)
+                    .height(145.dp)
             )
 
-            Spacer(Modifier.height(20.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(azul.copy(alpha = 0.88f))
-                    .border(
-                        2.dp,
-                        dorado.copy(alpha = 0.85f),
-                        RoundedCornerShape(24.dp)
-                    )
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Surface(
+                modifier =
+                    Modifier.fillMaxWidth(),
+                color =
+                    AzulRegistro.copy(
+                        alpha = 0.82f
+                    ),
+                shape =
+                    RoundedCornerShape(24.dp),
+                border =
+                    androidx.compose.foundation
+                        .BorderStroke(
+                            2.dp,
+                            DoradoRegistro
+                        )
             ) {
-                Text(
-                    text = "¡NUEVO ENTRENADOR!",
-                    color = dorado,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center
-                )
 
-                Spacer(Modifier.height(6.dp))
+                Column(
+                    modifier =
+                        Modifier.padding(18.dp),
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
+                ) {
 
-                Text(
-                    text = "Crea tu cuenta y comienza tu aventura",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text =
+                            "¡NUEVO ENTRENADOR!",
+                        style =
+                            MaterialTheme.typography
+                                .titleLarge,
+                        fontWeight =
+                            FontWeight.ExtraBold,
+                        color =
+                            DoradoRegistro
+                    )
 
-                Spacer(Modifier.height(22.dp))
+                    Spacer(
+                        Modifier.height(4.dp)
+                    )
 
-                OutlinedTextField(
-                    value = correo,
-                    onValueChange = {
-                        correo = it
-                        correoError = null
-                        viewModel.limpiarError()
-                    },
-                    placeholder = {
-                        Text("Correo electrónico", color = Color(0xFF64748B))
-                    },
-                    singleLine = true,
-                    isError = correoError != null,
-                    supportingText = correoError?.let { error ->
-                        {
+                    Text(
+                        text =
+                            "Crea tu cuenta y comienza tu aventura",
+                        color =
+                            Color.White,
+                        style =
+                            MaterialTheme.typography
+                                .bodySmall
+                    )
+
+                    Spacer(
+                        Modifier.height(22.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = correo,
+                        onValueChange = {
+                            correo = it
+                            correoError = null
+                        },
+                        placeholder = {
                             Text(
-                                error,
-                                color = Color(0xFFFFD6D6)
+                                "Correo electrónico"
                             )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = coloresCamposRegistro(crema, azul),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        },
+                        singleLine = true,
+                        isError =
+                            correoError != null,
+                        supportingText = {
 
-                Spacer(Modifier.height(10.dp))
-
-                OutlinedTextField(
-                    value = clave,
-                    onValueChange = {
-                        clave = it
-                        claveError = null
-                        viewModel.limpiarError()
-                    },
-                    placeholder = {
-                        Text("Contraseña", color = Color(0xFF64748B))
-                    },
-                    singleLine = true,
-                    isError = claveError != null,
-                    visualTransformation =
-                        if (claveVisible)
-                            VisualTransformation.None
-                        else
-                            PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                claveVisible = !claveVisible
+                            correoError?.let {
+                                Text(it)
                             }
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (claveVisible)
-                                        Icons.Filled.VisibilityOff
-                                    else
-                                        Icons.Filled.Visibility,
-                                contentDescription =
-                                    if (claveVisible)
-                                        "Ocultar contraseña"
-                                    else
-                                        "Mostrar contraseña",
-                                tint = azul
-                            )
-                        }
-                    },
-                    supportingText = claveError?.let { error ->
-                        {
-                            Text(
-                                error,
-                                color = Color(0xFFFFD6D6)
-                            )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = coloresCamposRegistro(crema, azul),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        },
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType =
+                                    KeyboardType.Email,
+                                imeAction =
+                                    ImeAction.Next
+                            ),
+                        colors =
+                            campoRegistroColors(),
+                        shape =
+                            RoundedCornerShape(
+                                14.dp
+                            ),
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
 
-                Spacer(Modifier.height(10.dp))
+                    Spacer(
+                        Modifier.height(8.dp)
+                    )
 
-                OutlinedTextField(
-                    value = confirmar,
-                    onValueChange = {
-                        confirmar = it
-                        confirmarError = null
-                        viewModel.limpiarError()
-                    },
-                    placeholder = {
-                        Text("Confirmar contraseña", color = Color(0xFF64748B))
-                    },
-                    singleLine = true,
-                    isError = confirmarError != null,
-                    visualTransformation =
-                        if (confirmarVisible)
-                            VisualTransformation.None
-                        else
-                            PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                confirmarVisible = !confirmarVisible
+                    OutlinedTextField(
+                        value = clave,
+                        onValueChange = {
+                            clave = it
+                            claveError = null
+                        },
+                        placeholder = {
+                            Text("Contraseña")
+                        },
+                        singleLine = true,
+                        isError =
+                            claveError != null,
+                        supportingText = {
+
+                            claveError?.let {
+                                Text(it)
                             }
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (confirmarVisible)
-                                        Icons.Filled.VisibilityOff
-                                    else
-                                        Icons.Filled.Visibility,
-                                contentDescription =
-                                    if (confirmarVisible)
-                                        "Ocultar contraseña"
-                                    else
+                        },
+                        visualTransformation =
+                            if (claveVisible)
+                                VisualTransformation.None
+                            else
+                                PasswordVisualTransformation(),
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType =
+                                    KeyboardType.Password,
+                                imeAction =
+                                    ImeAction.Next
+                            ),
+                        trailingIcon = {
+
+                            IconButton(
+                                onClick = {
+                                    claveVisible =
+                                        !claveVisible
+                                }
+                            ) {
+
+                                Icon(
+                                    imageVector =
+                                        if (
+                                            claveVisible
+                                        )
+                                            Icons.Filled
+                                                .VisibilityOff
+                                        else
+                                            Icons.Filled
+                                                .Visibility,
+                                    contentDescription =
                                         "Mostrar contraseña",
-                                tint = azul
-                            )
-                        }
-                    },
-                    supportingText =
-                        confirmarError?.let { error ->
-                            {
-                                Text(
-                                    error,
-                                    color = Color(0xFFFFD6D6)
+                                    tint =
+                                        AzulRegistro
                                 )
                             }
                         },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { registrar() }
-                    ),
-                    colors = coloresCamposRegistro(crema, azul),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                (estado as? UiState.Error)?.let {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = it.mensaje,
-                        color = Color(0xFFFFD6D6),
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
+                        colors =
+                            campoRegistroColors(),
+                        shape =
+                            RoundedCornerShape(
+                                14.dp
+                            ),
+                        modifier =
+                            Modifier.fillMaxWidth()
                     )
-                }
 
-                Spacer(Modifier.height(22.dp))
-
-
-                Button(
-                    onClick = { registrar() },
-                    enabled = !cargando,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .border(
-                            width = 2.dp,
-                            color = Color(0xFFFFD54F),
-                            shape = RoundedCornerShape(14.dp)
-                        ),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2456A6),
-                        contentColor = Color.White,
-                        disabledContainerColor = Color(0xFF56749A)
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 5.dp,
-                        pressedElevation = 2.dp
+                    Spacer(
+                        Modifier.height(8.dp)
                     )
-                ) {
-                    if (cargando) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = "¡CREAR MI CUENTA!",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
+
+                    OutlinedTextField(
+                        value =
+                            confirmarClave,
+                        onValueChange = {
+                            confirmarClave = it
+                            confirmarError = null
+                        },
+                        placeholder = {
+                            Text(
+                                "Confirmar contraseña"
+                            )
+                        },
+                        singleLine = true,
+                        isError =
+                            confirmarError != null,
+                        supportingText = {
+
+                            confirmarError?.let {
+                                Text(it)
+                            }
+                        },
+                        visualTransformation =
+                            if (
+                                confirmarVisible
+                            )
+                                VisualTransformation.None
+                            else
+                                PasswordVisualTransformation(),
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType =
+                                    KeyboardType.Password,
+                                imeAction =
+                                    ImeAction.Done
+                            ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = {
+                                    registrar()
+                                }
+                            ),
+                        trailingIcon = {
+
+                            IconButton(
+                                onClick = {
+                                    confirmarVisible =
+                                        !confirmarVisible
+                                }
+                            ) {
+
+                                Icon(
+                                    imageVector =
+                                        if (
+                                            confirmarVisible
+                                        )
+                                            Icons.Filled
+                                                .VisibilityOff
+                                        else
+                                            Icons.Filled
+                                                .Visibility,
+                                    contentDescription =
+                                        "Mostrar contraseña",
+                                    tint =
+                                        AzulRegistro
+                                )
+                            }
+                        },
+                        colors =
+                            campoRegistroColors(),
+                        shape =
+                            RoundedCornerShape(
+                                14.dp
+                            ),
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+
+                    /*
+                     * Error proveniente de Firebase
+                     */
+                    (registroEstado as? UiState.Error)
+                        ?.let {
+
+                            Spacer(
+                                Modifier.height(6.dp)
+                            )
+
+                            Text(
+                                text =
+                                    it.mensaje,
+                                color =
+                                    Color.White,
+                                style =
+                                    MaterialTheme.typography
+                                        .bodySmall
+                            )
+                        }
+
+                    Spacer(
+                        Modifier.height(14.dp)
+                    )
+
+                    Button(
+                        onClick = registrar,
+                        enabled =
+                            registroEstado
+                                    !is UiState.Cargando,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape =
+                            RoundedCornerShape(
+                                14.dp
+                            ),
+                        colors =
+                            ButtonDefaults
+                                .buttonColors(
+                                    containerColor =
+                                        Color(
+                                            0xFF2D65B5
+                                        ),
+                                    contentColor =
+                                        Color.White
+                                )
+                    ) {
+
+                        if (
+                            registroEstado
+                                    is UiState.Cargando
+                        ) {
+
+                            CircularProgressIndicator(
+                                modifier =
+                                    Modifier.size(
+                                        22.dp
+                                    ),
+                                color =
+                                    Color.White,
+                                strokeWidth =
+                                    2.dp
+                            )
+
+                        } else {
+
+                            Text(
+                                text =
+                                    "¡CREAR MI CUENTA!",
+                                fontWeight =
+                                    FontWeight.Bold
+                            )
+                        }
                     }
-                }
 
+                    Spacer(
+                        Modifier.height(18.dp)
+                    )
 
-                Spacer(Modifier.height(14.dp))
-
-                TextButton(
-                    onClick = {
-                        viewModel.limpiarError()
-                        onVolverLogin()
-                    },
-                    enabled = !cargando
-                ) {
                     Text(
-                        "¿Ya tienes cuenta? Inicia sesión",
-                        color = dorado,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        text =
+                            "¿Ya tienes cuenta? Inicia sesión",
+                        color =
+                            DoradoRegistro,
+                        fontWeight =
+                            FontWeight.Bold,
+                        style =
+                            MaterialTheme.typography
+                                .bodySmall,
+                        modifier =
+                            Modifier.clickable {
+
+                                viewModel
+                                    .limpiarEstadoRegistro()
+
+                                onVolverLogin()
+                            }
                     )
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            Text(
-                text = "¡Tu aventura comienza aquí!",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+            Spacer(
+                Modifier.height(18.dp)
             )
 
-            Spacer(Modifier.height(24.dp))
+            Text(
+                text =
+                    "¡Tu aventura comienza aquí!",
+                color = Color.White,
+                fontWeight =
+                    FontWeight.Bold
+            )
         }
     }
 }
 
 @Composable
-private fun coloresCamposRegistro(
-    fondo: Color,
-    azul: Color
-) = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = azul,
-    unfocusedTextColor = azul,
-    focusedContainerColor = fondo,
-    unfocusedContainerColor = fondo.copy(alpha = 0.95f),
-    focusedPlaceholderColor = Color(0xFF64748B),
-    unfocusedPlaceholderColor = Color(0xFF64748B),
-    focusedBorderColor = Color(0xFFFFC83D),
-    unfocusedBorderColor = azul.copy(alpha = 0.55f),
-    cursorColor = azul,
-    errorContainerColor = fondo,
-    errorTextColor = azul,
-    errorLabelColor = Color(0xFFB3261E),
-    errorBorderColor = Color(0xFFE93612)
-)
+private fun campoRegistroColors() =
+    OutlinedTextFieldDefaults.colors(
+
+        focusedContainerColor =
+            Color(0xFFF8F4EC),
+
+        unfocusedContainerColor =
+            Color(0xFFF8F4EC),
+
+        focusedTextColor =
+            Color(0xFF173B73),
+
+        unfocusedTextColor =
+            Color(0xFF173B73),
+
+        cursorColor =
+            Color(0xFF173B73),
+
+        focusedBorderColor =
+            Color(0xFFFFCB05),
+
+        unfocusedBorderColor =
+            Color.Transparent,
+
+        focusedPlaceholderColor =
+            Color(0xFF173B73),
+
+        unfocusedPlaceholderColor =
+            Color(0xFF173B73),
+
+        errorContainerColor =
+            Color(0xFFF8F4EC),
+
+        errorTextColor =
+            Color(0xFF173B73)
+    )

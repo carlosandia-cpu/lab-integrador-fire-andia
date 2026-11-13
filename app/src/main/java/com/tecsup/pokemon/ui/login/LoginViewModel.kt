@@ -1,4 +1,3 @@
-
 package com.tecsup.pokemon.ui.login
 
 import androidx.lifecycle.ViewModel
@@ -15,39 +14,90 @@ class LoginViewModel(
     private val auth: AuthRepository
 ) : ViewModel() {
 
+    /*
+     * Estado de la sesión:
+     *
+     * Cargando
+     * Exito(null) = no hay sesión
+     * Exito(sesion) = usuario autenticado
+     * Error = fallo de login
+     */
     private val _estado =
-        MutableStateFlow<UiState<Sesion?>>(UiState.Cargando)
+        MutableStateFlow<UiState<Sesion?>>(
+            UiState.Cargando
+        )
 
     val estado: StateFlow<UiState<Sesion?>> =
         _estado.asStateFlow()
 
+    /*
+     * Estado específico del registro.
+     *
+     * No usamos _estado para el registro porque
+     * registrar una cuenta NO debe iniciar sesión.
+     */
+    private val _registroEstado =
+        MutableStateFlow<UiState<Unit>?>(
+            null
+        )
+
+    val registroEstado:
+            StateFlow<UiState<Unit>?> =
+        _registroEstado.asStateFlow()
+
     init {
+
         viewModelScope.launch {
-            _estado.value = UiState.Exito(auth.sesionActual())
+
+            val sesion =
+                auth.sesionActual()
+
+            _estado.value =
+                UiState.Exito(sesion)
         }
     }
 
-    fun iniciarSesion(correo: String, clave: String) {
-        if (correo.isBlank() || clave.isBlank()) {
-            _estado.value = UiState.Error(
-                "Completa el correo y la contraseña"
-            )
+    fun iniciarSesion(
+        correo: String,
+        clave: String
+    ) {
+
+        if (
+            correo.isBlank() ||
+            clave.isBlank()
+        ) {
+
+            _estado.value =
+                UiState.Error(
+                    "Completa el correo y la contraseña"
+                )
+
             return
         }
 
-        if (_estado.value is UiState.Cargando) return
-
-        _estado.value = UiState.Cargando
+        _estado.value =
+            UiState.Cargando
 
         viewModelScope.launch {
-            auth.iniciarSesion(correo.trim(), clave)
-                .onSuccess {
-                    _estado.value = UiState.Exito(it)
+
+            auth.iniciarSesion(
+                correo.trim(),
+                clave
+            )
+                .onSuccess { sesion ->
+
+                    _estado.value =
+                        UiState.Exito(
+                            sesion
+                        )
                 }
-                .onFailure {
-                    _estado.value = UiState.Error(
-                        it.message ?: "No se pudo iniciar sesión"
-                    )
+                .onFailure { error ->
+
+                    _estado.value =
+                        UiState.Error(
+                            error.message
+                                ?: "No se pudo iniciar sesión"
+                        )
                 }
         }
     }
@@ -56,45 +106,70 @@ class LoginViewModel(
         correo: String,
         clave: String
     ) {
-        if (correo.isBlank() || clave.isBlank()) {
-            _estado.value = UiState.Error(
-                "Completa todos los campos"
-            )
+
+        if (
+            correo.isBlank() ||
+            clave.isBlank()
+        ) {
+
+            _registroEstado.value =
+                UiState.Error(
+                    "Completa todos los campos"
+                )
+
             return
         }
 
-        if (clave.length < 6) {
-            _estado.value = UiState.Error(
-                "La contraseña debe tener mínimo 6 caracteres"
-            )
-            return
-        }
-
-        if (_estado.value is UiState.Cargando) return
-
-        _estado.value = UiState.Cargando
+        _registroEstado.value =
+            UiState.Cargando
 
         viewModelScope.launch {
-            auth.registrarUsuario(correo.trim(), clave)
+
+            auth.registrarUsuario(
+                correo.trim(),
+                clave
+            )
                 .onSuccess {
-                    _estado.value = UiState.Exito(it)
+
+                    /*
+                     * Cuenta creada correctamente,
+                     * pero NO iniciamos sesión.
+                     */
+                    _estado.value =
+                        UiState.Exito(null)
+
+                    _registroEstado.value =
+                        UiState.Exito(Unit)
                 }
-                .onFailure {
-                    _estado.value = UiState.Error(
-                        it.message ?: "No se pudo registrar"
-                    )
+                .onFailure { error ->
+
+                    _registroEstado.value =
+                        UiState.Error(
+                            error.message
+                                ?: "No se pudo registrar"
+                        )
                 }
         }
     }
 
     fun limpiarError() {
+
         if (_estado.value is UiState.Error) {
-            _estado.value = UiState.Exito(null)
+
+            _estado.value =
+                UiState.Exito(null)
         }
     }
 
+    fun limpiarEstadoRegistro() {
+        _registroEstado.value = null
+    }
+
     fun cerrarSesion() {
+
         auth.cerrarSesion()
-        _estado.value = UiState.Exito(null)
+
+        _estado.value =
+            UiState.Exito(null)
     }
 }
